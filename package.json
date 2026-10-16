@@ -1,0 +1,9 @@
+{
+  "name": "fastneura-organization-map",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Authenticated, shared JSON organization map",
+  "scripts": {"test": "node --test model.test.js cloud.test.js supabase/schema.test.js", "check": "node --check app.js && node --check cloud.js"},
+  "devDependencies": {"@electric-sql/pglite": "0.3.14"},
+  "engines": {"node": ">=20"}
+}

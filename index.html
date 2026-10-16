@@ -5,13 +5,14 @@
 <meta name="description" content="役職・名前・所属先から作るFastNeuraの組織図。">
 <title>FastNeura | Organization Map</title>
 <link rel="stylesheet" href="style.css">
-<script src="model.js" defer></script><script src="app.js" defer></script>
+<script src="config.js" defer></script><script src="vendor/supabase-2.57.4.js" defer></script><script src="cloud.js" defer></script><script src="model.js" defer></script><script src="app.js" defer></script>
 </head>
 <body>
-<header class="header"><a class="brand" href="./index.html" aria-label="FastNeura 組織図"><span class="brand-mark">F<span>n</span></span><span>FastNeura<small>ORGANIZATION WORKSPACE</small></span></a><span class="workspace-label">組織を、ひとつの地図に。</span><span class="local-badge"><i></i> ローカルワークスペース</span></header>
-<main>
-<section class="page-heading"><div><div class="eyebrow">PEOPLE & STRUCTURE</div><h1>組織図<span class="version">WORKSPACE</span></h1><p>チームのつながりを、見えるかたちに。</p></div><div class="file-actions"><button id="import-btn" class="button secondary">↑ 読み込む</button><button id="export-btn" class="button secondary">↓ JSONで保存</button><input type="file" id="import-file" accept=".json,application/json" hidden></div></section>
-<div class="workspace">
+<header class="header"><a class="brand" href="./index.html" aria-label="FastNeura 組織図"><span class="brand-mark">F<span>n</span></span><span>FastNeura<small>ORGANIZATION WORKSPACE</small></span></a><span class="workspace-label">組織を、ひとつの地図に。</span><span class="local-badge"><i></i> 共有ワークスペース</span><div id="account" hidden><span id="account-email"></span><button id="logout-btn" class="text-button">ログアウト</button></div></header>
+<section id="auth-screen" class="auth-screen"><div class="auth-card"><div class="eyebrow">FASTNEURA WORKSPACE</div><h1>チームにつながる。</h1><p>ログインして、共有の組織図を開きましょう。</p><form id="login-form"><label for="login-email">メールアドレス</label><input id="login-email" type="email" autocomplete="username" required><label for="login-password">パスワード</label><input id="login-password" type="password" autocomplete="current-password" required><button id="login-btn" class="button primary full" type="submit">ログイン</button></form><p id="auth-message" class="auth-message" role="status" aria-live="polite">接続を準備しています…</p><button id="retry-btn" class="button secondary full" hidden>もう一度接続する</button><p class="field-hint">利用できるのは、管理者が登録したメンバーのみです。<br>アカウントの作成・パスワードの再設定は管理者にご依頼ください。</p></div></section>
+<main id="app-main" hidden>
+<section class="page-heading"><div><div class="eyebrow">PEOPLE & STRUCTURE</div><h1>組織図<span class="version">WORKSPACE</span></h1><p>チームのつながりを、見えるかたちに。</p></div><div class="file-actions"><button id="refresh-btn" class="button secondary">↻ 最新を取得</button><button id="legacy-btn" class="button secondary" hidden>旧データを移行</button><button id="import-btn" class="button secondary">↑ 読み込む</button><button id="export-btn" class="button secondary">↓ JSONで保存</button><input type="file" id="import-file" accept=".json,application/json" hidden></div></section>
+<div id="sync-notice" class="sync-notice" role="status" hidden></div><div class="workspace">
 <aside class="editor">
 <div class="panel-heading"><span class="step-icon">＋</span><div><h2 id="form-heading">メンバーを追加</h2><p id="form-caption">チームをつなぐ、最初の一歩。</p></div></div>
 <form id="member-form"><label for="role">役職 <span class="required">必須</span></label><input id="role" name="role" maxlength="80" placeholder="例：CEO / エンジニア" required autocomplete="organization-title">
@@ -19,7 +20,7 @@
 <label for="parent">所属先 <span class="optional">任意</span></label><select id="parent" name="parent"><option value="">所属先なし（最上位）</option></select><p class="field-hint">直属の上司・責任者を選んでください。<br>選ばない場合は、組織図の最上位になります。</p>
 <p id="form-error" class="error" role="alert"></p><button type="submit" id="submit-btn" class="button primary">＋ メンバーを追加</button><button type="button" id="cancel-btn" class="button secondary full" hidden>編集をキャンセル</button><button type="button" id="delete-btn" class="delete-link" hidden>このメンバーを削除</button></form>
 <div class="editor-note"><span>↳</span><p>カードをクリックすると、<br>メンバー情報・所属先を編集できます。</p></div>
-<div class="storage-note"><i></i><div><strong id="save-state">このブラウザに自動保存</strong><p>端末間では同期されません。<br>バックアップは「JSONで保存」から。</p></div></div>
+<div class="storage-note"><i></i><div><strong id="save-state">クラウドに共有保存</strong><p>許可されたメンバーと同じ組織図を共有します。<br>バックアップは「JSONで保存」から。</p></div></div>
 </aside>
 <section class="map-panel" aria-label="組織図">
 <div class="map-toolbar"><div class="map-title"><span class="tiny-tree">⊞</span><h2>チームの構成</h2><span id="member-count" class="count">0 members</span></div><button id="new-btn" class="text-button">＋ 新規追加</button></div>

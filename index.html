@@ -2,33 +2,34 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="役職・名前・所属先から作るFastNeuraの組織図。">
-<title>FastNeura | 共有組織図</title>
-<link rel="stylesheet" href="style.css">
-<script src="config.js" defer></script><script src="vendor/supabase-2.57.4.js" defer></script><script src="cloud.js" defer></script><script src="model.js" defer></script><script src="app.js" defer></script>
+<meta name="description" content="ログインして共有する組織図。">
+<title>組織図</title>
+<link rel="stylesheet" href="style.css?v=mono1">
+<script src="config.js" defer></script><script src="vendor/supabase-2.57.4.js" defer></script><script src="cloud.js" defer></script><script src="model.js" defer></script><script src="app.js?v=mono1" defer></script>
 </head>
 <body>
-<header class="header"><a class="brand" href="./index.html" aria-label="FastNeura 組織図"><span class="brand-mark">F<span>n</span></span><span>FastNeura<small>ORGANIZATION WORKSPACE</small></span></a><span class="workspace-label">組織を、ひとつの地図に。</span><span class="local-badge"><i></i> 共有ワークスペース</span><div id="account" hidden><span id="account-email"></span><button id="logout-btn" class="text-button">ログアウト</button></div></header>
-<section id="auth-screen" class="auth-screen"><div class="auth-card"><div class="eyebrow">FASTNEURA WORKSPACE</div><h1>チームにつながる。</h1><p>ログインして、共有の組織図を開きましょう。</p><form id="login-form"><label for="login-email">メールアドレス</label><input id="login-email" type="email" autocomplete="username" required><label for="login-password">パスワード</label><input id="login-password" type="password" autocomplete="current-password" required><button id="login-btn" class="button primary full" type="submit">ログイン</button></form><p id="auth-message" class="auth-message" role="status" aria-live="polite">接続を準備しています…</p><button id="retry-btn" class="button secondary full" hidden>もう一度接続する</button><p class="field-hint">利用できるのは、管理者が登録したメンバーのみです。<br>アカウントの作成・パスワードの再設定は管理者にご依頼ください。</p></div></section>
+<section id="auth-screen" class="auth-screen"><div class="auth-card"><h1>ログイン</h1><p>共有の組織図を開きます。</p><form id="login-form"><label for="login-email">メールアドレス</label><input id="login-email" type="email" autocomplete="username" required><label for="login-password">パスワード</label><input id="login-password" type="password" autocomplete="current-password" required><button id="login-btn" class="button primary full" type="submit">ログイン</button></form><p id="auth-message" class="auth-message" role="status" aria-live="polite">接続を準備しています…</p><button id="retry-btn" class="button secondary full" hidden>もう一度接続する</button><p class="field-hint">利用できるのは、管理者が登録したメンバーのみです。<br>アカウントの作成・パスワードの再設定は管理者にご依頼ください。</p></div></section>
+
 <main id="app-main" hidden>
-<section class="page-heading"><div><div class="eyebrow">PEOPLE & STRUCTURE</div><h1>組織図<span class="version">WORKSPACE</span></h1><p>チームのつながりを、見えるかたちに。</p></div><div class="file-actions"><button id="refresh-btn" class="button secondary">↻ 最新を取得</button><button id="legacy-btn" class="button secondary" hidden>旧データを移行</button><button id="import-btn" class="button secondary">↑ 読み込む</button><button id="export-btn" class="button secondary">↓ JSONで保存</button><input type="file" id="import-file" accept=".json,application/json" hidden></div></section>
-<div id="sync-notice" class="sync-notice" role="status" hidden></div><div class="workspace">
-<aside class="editor">
-<div class="panel-heading"><span class="step-icon">＋</span><div><h2 id="form-heading">メンバーを追加</h2><p id="form-caption">チームをつなぐ、最初の一歩。</p></div></div>
-<form id="member-form"><label for="role">役職 <span class="required">必須</span></label><input id="role" name="role" maxlength="80" placeholder="例：CEO / エンジニア" required autocomplete="organization-title">
+<div class="workspace">
+<section id="viewport" class="viewport" tabindex="0" aria-label="組織図。大きな図は縦横にスクロールできます。操作はこの下にあります。">
+<div id="empty" class="empty"><p>メンバーがまだ登録されていません。</p><p>下へスクロールして登録してください。</p></div>
+<div id="chart-space"><div id="chart" class="chart"></div></div>
+</section>
+<section class="controls" aria-label="組織図の操作">
+<div class="controls-top"><button id="new-btn" class="button primary">＋ メンバーを登録</button><button id="view-map-btn" class="button secondary">組織図に戻る ↑</button><div class="zoom-controls"><button id="zoom-out" aria-label="縮小">−</button><span id="zoom-label">100%</span><button id="zoom-in" aria-label="拡大">＋</button><button id="fit-btn">全体表示</button></div></div>
+<div id="sync-notice" class="sync-notice" role="status" hidden></div>
+<div class="control-grid">
+<section class="editor" aria-labelledby="form-heading"><h2 id="form-heading">メンバーを追加</h2><form id="member-form"><label for="role">役職 <span class="required">必須</span></label><input id="role" name="role" maxlength="80" placeholder="例：CEO / エンジニア" required autocomplete="organization-title">
 <label for="name">名前 <span class="required">必須</span></label><input id="name" name="name" maxlength="80" placeholder="例：山田 太郎" required autocomplete="name">
 <label for="parent">所属先 <span class="optional">任意</span></label><select id="parent" name="parent"><option value="">所属先なし（最上位）</option></select><p class="field-hint">直属の上司・責任者を選んでください。<br>選ばない場合は、組織図の最上位になります。</p>
-<p id="form-error" class="error" role="alert"></p><button type="submit" id="submit-btn" class="button primary">＋ メンバーを追加</button><button type="button" id="cancel-btn" class="button secondary full" hidden>編集をキャンセル</button><button type="button" id="delete-btn" class="delete-link" hidden>このメンバーを削除</button></form>
-<div class="editor-note"><span>↳</span><p>カードをクリックすると、<br>メンバー情報・所属先を編集できます。</p></div>
-<div class="storage-note"><i></i><div><strong id="save-state">クラウドに共有保存</strong><p>許可されたメンバーと同じ組織図を共有します。<br>バックアップは「JSONで保存」から。</p></div></div>
-</aside>
-<section class="map-panel" aria-label="組織図">
-<div class="map-toolbar"><div class="map-title"><span class="tiny-tree">⊞</span><h2>チームの構成</h2><span id="member-count" class="count">0 members</span></div><button id="new-btn" class="text-button">＋ 新規追加</button></div>
-<div id="viewport" class="viewport" tabindex="0" aria-label="組織図キャンバス。縦横にスクロールできます。"><div id="empty" class="empty"><div class="empty-art" aria-hidden="true"><span class="mini-node top"></span><span class="mini-line"></span><span class="mini-node left"></span><span class="mini-node right"></span></div><div class="eyebrow">YOUR TEAM STARTS HERE</div><h3>最初のメンバーを登録しましょう</h3><p>名前と役職を入力すると、ここに組織図が表示されます。<br>所属先を選ぶだけで、つながりが生まれます。</p><button id="empty-add" class="button primary">＋ メンバーを登録</button></div><div id="chart-space"><div id="chart" class="chart"></div></div></div>
-<div class="map-footer"><span id="root-summary">所属先なしのメンバーが最上位になります</span><div class="zoom-controls"><button id="zoom-out" aria-label="縮小">−</button><span id="zoom-label">100%</span><button id="zoom-in" aria-label="拡大">＋</button><span class="divider"></span><button id="fit-btn">全体表示</button></div></div>
-</section></div>
-<footer class="page-footer"><span>FastNeura <span class="muted">/ Organization Map</span></span><span>人と役割、そのつながりをシンプルに。</span></footer>
+<p id="form-error" class="error" role="alert"></p><button type="submit" id="submit-btn" class="button primary">＋ メンバーを追加</button><button type="button" id="cancel-btn" class="button secondary full" hidden>編集をキャンセル</button><button type="button" id="delete-btn" class="delete-link" hidden>このメンバーを削除</button></form></section>
+<section class="data-controls" aria-label="保存と同期"><h2>データ</h2><p id="root-summary"></p><span id="member-count" hidden></span><p id="save-state">クラウドに共有保存</p><div class="file-actions"><button id="refresh-btn" class="button secondary">最新を取得</button><button id="export-btn" class="button secondary">JSONで保存</button><button id="import-btn" class="button secondary">JSONを読み込む</button><button id="legacy-btn" class="button secondary" hidden>旧データを移行</button><input type="file" id="import-file" accept=".json,application/json" hidden></div></section>
+</div>
+</section>
+</div>
 </main>
+<footer id="account" hidden><span id="account-email"></span><button id="logout-btn" class="text-button">ログアウト</button></footer>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <dialog id="confirm-dialog"><h2 id="confirm-title"></h2><p id="confirm-text"></p><div class="dialog-actions"><button id="confirm-cancel" class="button secondary">キャンセル</button><button id="confirm-ok" class="button primary">実行する</button></div></dialog>
 </body></html>

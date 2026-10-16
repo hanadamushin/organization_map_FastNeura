@@ -50,17 +50,17 @@ function options(selected = '') {
 }
 function resetEditor(focus = false) {
   editingId = null; dirty = false; $('member-form').reset(); options(); $('form-heading').textContent = 'メンバーを追加';
-  $('form-caption').textContent = 'チームをつなぐ、最初の一歩。'; $('submit-btn').textContent = '＋ メンバーを追加';
+  $('submit-btn').textContent = '＋ メンバーを追加';
   $('cancel-btn').hidden = true; $('delete-btn').hidden = true; $('form-error').textContent = ''; render();
   if (focus) { $('role').focus(); $('member-form').scrollIntoView({behavior:'smooth', block:'center'}); }
 }
 function edit(id) {
   const m = members.find(m => m.id === id); if (!m) return;
   editingId = id; dirty = true; $('role').value = m.role; $('name').value = m.name; options(m.parentId || '');
-  $('form-heading').textContent = 'メンバーを編集'; $('form-caption').textContent = '役割や所属先を更新できます。';
+  $('form-heading').textContent = 'メンバーを編集';
   $('submit-btn').textContent = '変更を保存'; $('cancel-btn').hidden = false; $('delete-btn').hidden = false; $('form-error').textContent = ''; render();
   $('role').focus({preventScroll:true});
-  if (window.innerWidth <= 680) $('member-form').scrollIntoView({behavior:'smooth', block:'center'});
+  $('member-form').scrollIntoView({behavior:'smooth', block:'center'});
 }
 function render() {
   $('member-count').textContent = `${members.length} members`;
@@ -76,7 +76,7 @@ function render() {
       const li = document.createElement('li'), card = document.createElement('button');
       card.className = 'person' + (m.parentId === null ? ' root' : '') + (m.id === editingId ? ' selected' : '');
       card.type = 'button'; card.setAttribute('aria-label', `${m.role} ${m.name} を編集`); card.setAttribute('aria-pressed', String(m.id === editingId));
-      for (const [cls, text] of [['role',m.role],['name',m.name],['avatar',Array.from(m.name)[0]],['reports',`${(children.get(m.id)||[]).length}名が直属`]]) {
+      for (const [cls, text] of [['role',m.role],['name',m.name]]) {
         const el = document.createElement('div'); el.className = cls; el.textContent = text; if (cls === 'avatar') el.setAttribute('aria-hidden','true'); card.append(el);
       }
       card.onclick = () => edit(m.id); li.append(card);
@@ -106,7 +106,7 @@ $('member-form').onsubmit = async event => {
   try { await persist(next); resetEditor(); toast(wasEditing ? 'メンバー情報を更新しました' : 'メンバーを追加しました'); }
   catch (error) { $('form-error').textContent = error.message; }
 };
-$('cancel-btn').onclick = () => resetEditor(); $('new-btn').onclick = $('empty-add').onclick = () => resetEditor(true);
+$('cancel-btn').onclick = () => resetEditor(); $('new-btn').onclick = () => resetEditor(true);
 $('delete-btn').onclick = async () => {
   const m = members.find(m => m.id === editingId); if (!m) return;
   const count = members.filter(x => x.parentId === m.id).length;
@@ -137,6 +137,7 @@ $('import-file').onchange = async event => {
 };
 $('zoom-out').onclick = () => setZoom(zoom - .1); $('zoom-in').onclick = () => setZoom(zoom + .1);
 $('fit-btn').onclick = () => { if (!members.length) return; setZoom(Math.min(1, ($('viewport').clientWidth-20)/$('chart').offsetWidth, ($('viewport').clientHeight-20)/$('chart').offsetHeight)); $('viewport').scrollTo({top:0,left:0}); };
+$('view-map-btn').onclick = () => $('viewport').scrollIntoView({behavior:'smooth',block:'start'});
 window.addEventListener('resize', applyZoom);
 function notice(message) { $('sync-notice').textContent = message; $('sync-notice').hidden = false; }
 function authMessage(message, isError = false) { $('auth-message').textContent = message; $('auth-message').classList.toggle('error', isError); }
@@ -188,6 +189,7 @@ async function handleSession(session) {
     const row = await cloud.read();
     if (requestGeneration !== generation) return;
     acceptRow(row); $('auth-screen').hidden = true; $('app-main').hidden = false;
+    window.scrollTo({top:0,left:0});
     try { $('legacy-btn').hidden = !localStorage.getItem(STORAGE_KEY); } catch { $('legacy-btn').hidden = true; }
     requestAnimationFrame(applyZoom);
   } catch (error) {
